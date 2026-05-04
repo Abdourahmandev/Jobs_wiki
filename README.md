@@ -65,3 +65,8 @@ Ce qui vient ensuite (M0):
 ## Source de reference
 
 Le planning complet et les milestones sont definis dans `Plan.md`.
+
+## Diagramme d architecture
+
+- Version editable draw.io: [docs/architecture.drawio](docs/architecture.drawio)
+- Version image SVG: [docs/architecture.svg](docs/architecture.svg)

@@ -1,0 +1,74 @@
+<mxfile host="app.diagrams.net" modified="2026-05-03T23:00:00.000Z" agent="GitHub Copilot" version="24.7.17" etag="jobs-wiki-architecture">
+  <diagram id="jobs-wiki-architecture" name="Architecture cible">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="sources" value="Sources web\nWorld Bank, AfDB, UN\n(APIs, RSS, scraping si besoin)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="140" width="250" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ingestion" value="Ingestion\nGitHub Actions cron\nou Azure Function timer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="370" y="145" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="adls" value="ADLS Gen2\nBronze / Silver / Gold\nParquet partitionne par source + date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="660" y="120" width="310" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="postgres" value="PostgreSQL + pgvector\n(offres actives, embeddings)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="340" width="240" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="databricks" value="Databricks\n- feature engineering\n- labeling LLM\n- training\n- MLflow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="900" y="320" width="240" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="api" value="API Matching\nFastAPI (container)\nAzure Container Apps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="610" y="520" width="230" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="frontend" value="Frontend\nStreamlit\n(upload CV + resultats)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="930" y="530" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="powerbi" value="Power BI\nRapports marche" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="350" y="540" width="190" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge1" value="ingestion" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="sources" target="ingestion">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge2" value="raw -> bronze" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="ingestion" target="adls">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge3" value="silver -> OLTP" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="adls" target="postgres">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge4" value="gold for ML" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="adls" target="databricks">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge5" value="model promoted" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="databricks" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge6" value="match requests" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="frontend" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge7" value="reads" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="powerbi" target="postgres">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge8" value="reads" style="endArrow=block;endFill=1;strokeWidth=2;" edge="1" parent="1" source="powerbi" target="adls">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
