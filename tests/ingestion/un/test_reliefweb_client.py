@@ -2,15 +2,24 @@ import json
 import pytest
 
 from ingestion.un.raw_store import write_raw_payload
-from ingestion.un.reliefweb_client import build_jobs_request, extract_jobs
+from ingestion.un.reliefweb_client import RELIEFWEB_APP_NAME, RELIEFWEB_JOBS_URL, build_jobs_request, extract_jobs
 
 
 def test_build_jobs_request_targets_reliefweb_jobs():
     payload = build_jobs_request(limit=5)
 
-    assert payload["appname"] == "jobs_wiki"
+    # appname is now a query parameter (RELIEFWEB_APP_NAME), not part of the body
+    assert "appname" not in payload
     assert payload["limit"] == 5
     assert payload["preset"] == "latest"
+
+
+def test_reliefweb_url_uses_v2():
+    assert "/v2/" in RELIEFWEB_JOBS_URL
+
+
+def test_reliefweb_app_name_is_set():
+    assert RELIEFWEB_APP_NAME == "jobs_wiki"
 
 
 def test_extract_jobs_returns_data_entries():

@@ -94,6 +94,42 @@ Ce qui vient ensuite:
 - ajouter les controles qualite minimaux
 - valider une execution reproductible sur donnees reelles
 
+## Execution locale du pipeline pilote
+
+### Prerequis
+
+Enregistrer un `appname` approuve aupres de ReliefWeb:
+<https://apidoc.reliefweb.int/parameters#appname>
+
+Puis mettre a jour la constante `RELIEFWEB_APP_NAME` dans
+`ingestion/un/reliefweb_client.py` avec votre appname approuve.
+
+### Installation
+
+```bash
+python -m pip install -e .[dev]
+```
+
+### Lancer le pipeline
+
+```bash
+python scripts/run_reliefweb_pipeline.py
+```
+
+### Sorties attendues
+
+```
+data/raw/reliefweb/<YYYY-MM-DD>/<run-id>.json    # payload brut de l'API
+data/silver/reliefweb/<YYYY-MM-DD>/<run-id>.csv  # dataset canonique 16 champs
+data/runs/reliefweb/<YYYY-MM-DD>/<run-id>.json   # resume qualite de l'execution
+```
+
+### Lancer les tests
+
+```bash
+python -m pytest -q
+```
+
 ## Sources de reference
 
 - Roadmap et milestones: `Plan.md`

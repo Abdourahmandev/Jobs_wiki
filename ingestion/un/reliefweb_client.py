@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-RELIEFWEB_JOBS_URL = "https://api.reliefweb.int/v1/jobs"
+RELIEFWEB_JOBS_URL = "https://api.reliefweb.int/v2/jobs"
+RELIEFWEB_APP_NAME = "jobs_wiki"
 
 
 def build_jobs_request(limit: int = 100) -> dict[str, Any]:
     return {
-        "appname": "jobs_wiki",
         "preset": "latest",
         "limit": limit,
     }
