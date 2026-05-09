@@ -151,3 +151,22 @@ def test_first_meaningful_city_handles_non_list_input_returns_empty():
     raw_job2 = {"id": "job-13", "fields": {"city": {"name": "Lagos"}}}
     row2 = normalize_job(raw_job2, run_id="run-013", ingested_at="2026-05-07T16:00:00Z")
     assert row2["location"] == ""
+
+
+def test_normalize_job_treats_none_fields_as_empty_strings():
+    # Fields that are explicitly None should be normalized to empty strings
+    raw_job = {
+        "id": "job-20",
+        "fields": {
+            "title": "Tester",
+            "closing-date": None,
+            "url": None,
+            "body-html": None,
+        },
+    }
+
+    row = normalize_job(raw_job, run_id="run-020", ingested_at="2026-05-07T16:00:00Z")
+
+    assert row["closes_at"] == ""
+    assert row["url"] == ""
+    assert row["description_text"] == ""

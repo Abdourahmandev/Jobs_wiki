@@ -48,6 +48,15 @@ def _first_meaningful_city(cities: list | None) -> str:
     return ""
 
 
+def _safe_str(value: Any) -> str:
+    """Convert a value to string, treating None as an empty string.
+
+    This prevents values like None from being stringified to the literal
+    'None' which is not desired for missing fields in the normalized output.
+    """
+    return "" if value is None else str(value)
+
+
 def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dict[str, str]:
     fields = raw_job.get("fields", {})
     cities = fields.get("city", [])
@@ -73,9 +82,9 @@ def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dic
         "contract_type": _first_name(fields.get("career_categories")),
         "grade": "",
         "posted_at": str(created),
-        "closes_at": str(fields.get("closing-date", "")),
-        "url": str(fields.get("url", "")),
-        "description_text": str(fields.get("body-html", "")),
+        "closes_at": _safe_str(fields.get("closing-date")),
+        "url": _safe_str(fields.get("url")),
+        "description_text": _safe_str(fields.get("body-html")),
         "language": "en",
         "ingested_at": ingested_at,
         "run_id": run_id,
