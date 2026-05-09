@@ -17,19 +17,30 @@ def _first_name(items: list[dict[str, Any]] | None) -> str:
     first = items[0]
     if not isinstance(first, dict):
         return ""
-    # Prefer 'shortname' but treat whitespace-only values as empty and fall back
-    # to 'name'. This mirrors _first_meaningful_city's behavior for trimming
-    # and skipping whitespace-only strings.
+    # Prefer 'shortname' but treat whitespace-only values and bogus falsy
+    # placeholders (booleans and numeric zeros) as unusable and fall back to 'name'.
     short = first.get("shortname")
     if short is not None:
-        s = str(short).strip()
-        if s:
-            return s
+        # Reject boolean values (True/False) which would stringify to 'True'/'False'
+        # and numeric zero which would stringify to '0' — neither are meaningful.
+        if isinstance(short, bool) or (isinstance(short, (int, float)) and short == 0):
+            short_usable = False
+        else:
+            short_usable = True
+        if short_usable:
+            s = str(short).strip()
+            if s:
+                return s
     name = first.get("name")
     if name is not None:
-        s = str(name).strip()
-        if s:
-            return s
+        if isinstance(name, bool) or (isinstance(name, (int, float)) and name == 0):
+            name_usable = False
+        else:
+            name_usable = True
+        if name_usable:
+            s = str(name).strip()
+            if s:
+                return s
     return ""
 
 

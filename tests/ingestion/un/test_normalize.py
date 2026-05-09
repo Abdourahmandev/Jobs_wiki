@@ -181,3 +181,25 @@ def test_first_name_whitespace_shortname_falls_back_to_name():
     row = normalize_job(raw_job, run_id="run-021", ingested_at="2026-05-07T17:00:00Z")
 
     assert row["organization"] == "Valid Organization"
+
+
+def test_first_name_shortname_zero_falls_back_to_name():
+    raw_job = {
+        "id": "job-22",
+        "fields": {"source": [{"shortname": 0, "name": "Backup"}]},
+    }
+
+    row = normalize_job(raw_job, run_id="run-022", ingested_at="2026-05-07T18:00:00Z")
+
+    assert row["organization"] == "Backup"
+
+
+def test_first_name_name_false_treated_as_missing():
+    raw_job = {
+        "id": "job-23",
+        "fields": {"source": [{"name": False}]},
+    }
+
+    row = normalize_job(raw_job, run_id="run-023", ingested_at="2026-05-07T18:00:00Z")
+
+    assert row["organization"] == ""
