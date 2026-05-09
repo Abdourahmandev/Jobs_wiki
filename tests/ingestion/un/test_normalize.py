@@ -43,6 +43,30 @@ def test_normalize_job_uses_first_meaningful_city():
     assert row["location"] == "Kampala"
 
 
+def test_first_meaningful_city_handles_dict_entries():
+    # Ensure dict city entries prefer 'name' and do not get stringified as a dict
+    raw_job = {
+        "id": "job-3",
+        "fields": {
+            "title": "Coordinator",
+            "city": [{"name": "Lagos"}, None, ""],
+        },
+    }
+
+    row = normalize_job(raw_job, run_id="run-003", ingested_at="2026-05-07T12:00:00Z")
+
+    assert row["location"] == "Lagos"
+
+
+def test_source_job_id_none_treated_as_missing():
+    # When the source 'id' is None, normalize_job should return an empty string
+    raw_job = {"id": None, "fields": {"title": "Tester"}}
+
+    row = normalize_job(raw_job, run_id="run-004", ingested_at="2026-05-07T13:00:00Z")
+
+    assert row["source_job_id"] == ""
+
+
 def test_summarize_quality_treats_missing_ids_as_missing_not_duplicates():
     rows = [
         {"source_job_id": "", "url": "u1", "title": "X"},

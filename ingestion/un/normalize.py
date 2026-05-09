@@ -18,15 +18,23 @@ def _first_name(items: list[dict[str, Any]] | None) -> str:
 def _first_meaningful_city(cities: list | None) -> str:
     """Return the first meaningful city string from a list.
 
-    Skip None, empty strings, and whitespace-only entries. Return a trimmed
-    string for the first non-empty value or an empty string if none found.
+    Skip None, empty strings, whitespace-only entries, and dicts without a
+    usable 'name' or 'shortname'. If a dict is encountered prefer extracting
+    the 'name' (fall back to 'shortname') and return it if non-empty.
     """
     if not cities:
         return ""
     for c in cities:
         if c is None:
             continue
-        s = str(c).strip()
+        # If the city is a dict, prefer the 'name' or 'shortname' keys
+        if isinstance(c, dict):
+            name = c.get("name") or c.get("shortname")
+            if name is None:
+                continue
+            s = str(name).strip()
+        else:
+            s = str(c).strip()
         if s:
             return s
     return ""
@@ -37,9 +45,13 @@ def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dic
     cities = fields.get("city", [])
     created = fields.get("date", {}).get("created", "")
 
+    # Treat None source IDs as missing (empty string), not the literal 'None'
+    raw_id = raw_job.get("id", "")
+    source_id = "" if raw_id is None else str(raw_id)
+
     return {
         "source": "reliefweb",
-        "source_job_id": str(raw_job.get("id", "")),
+        "source_job_id": source_id,
         "title": str(fields.get("title", "")),
         "organization": _first_name(fields.get("source")),
         # Use the first meaningful city entry (skip empty/null/whitespace values)
