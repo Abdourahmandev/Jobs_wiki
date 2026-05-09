@@ -582,3 +582,70 @@ git commit -m "feat: wire local reliefweb pipeline entry point"
 - **Problem:** A follow-up commit unintentionally included tracked `__pycache__` and `.pyc` files, which should not be versioned.
 - **Resolution:** Removed the tracked cache artifacts, updated `.gitignore` to exclude Python cache files, and verified the worktree returned to a clean git state.
 
+### Issue 6: Organization mapping missed ReliefWeb `shortname`
+
+- **Found in:** Task 3 quality review
+- **Problem:** The first normalization pass only read `name`, while ReliefWeb source metadata used `shortname`, so `organization` was coming through empty.
+- **Resolution:** Updated `_first_name` to prefer `shortname` and fall back to `name`, then added assertions to verify `organization` is populated correctly.
+
+### Issue 7: Duplicate reporting hid duplicate severity
+
+- **Found in:** Task 3 quality review
+- **Problem:** `duplicate_source_job_ids` counted how many distinct IDs were duplicated, but not how many extra duplicate rows existed.
+- **Resolution:** Kept the original metric and added `total_duplicate_records` so the summary captures both duplicate spread and duplicate volume.
+
+### Issue 8: Location extraction accepted bad first city values
+
+- **Found in:** Task 3 quality review
+- **Problem:** The first implementation used the first city entry directly, which could yield empty strings or `None`-derived values instead of the first meaningful city.
+- **Resolution:** Added `_first_meaningful_city` so normalization skips empty and null entries and returns the first usable city value.
+
+### Issue 9: Dict city entries and `None` IDs were normalized incorrectly
+
+- **Found in:** Task 3 quality review
+- **Problem:** City dictionaries were being stringified instead of extracting a label, and `None` source IDs became the literal string `"None"`.
+- **Resolution:** Updated city normalization to extract `name` or `shortname` from dict entries and made `source_job_id` treat `None` as missing.
+
+### Issue 10: Malformed ReliefWeb shapes could crash normalization
+
+- **Found in:** Task 3 quality review
+- **Problem:** Non-dict `date` values and non-list `source`, `country`, `career_categories`, or `city` values could raise exceptions during normalization.
+- **Resolution:** Hardened normalization helpers with type guards so malformed shapes now resolve to empty strings instead of crashing.
+
+### Issue 11: Quality metrics treated `None` values as real data
+
+- **Found in:** Task 3 quality review
+- **Problem:** `summarize_quality` stringified `None` into `"None"`, which caused missing IDs and URLs to be counted as present and could also create false duplicates.
+- **Resolution:** Normalized `None` to empty values before trimming or duplicate counting, and added regression tests for `None` IDs and URLs.
+
+### Issue 12: Some normalized string fields still emitted literal `"None"`
+
+- **Found in:** Task 3 spec compliance review
+- **Problem:** `closes_at`, `url`, `description_text`, then later `title` and `posted_at`, still converted explicit `None` values into the literal string `"None"`.
+- **Resolution:** Introduced `_safe_str` and applied it to the affected normalized fields, then added focused tests for each `None` case.
+
+### Issue 13: `fields: None` crashed the normalizer
+
+- **Found in:** Task 3 quality review
+- **Problem:** `normalize_job` assumed `raw_job["fields"]` was dict-like, so payloads containing `{"fields": null}` raised `AttributeError`.
+- **Resolution:** Changed the normalizer to coerce a present-but-`None` `fields` value to an empty dict and added a regression test for that payload shape.
+
+### Issue 14: Whitespace-only `shortname` values bypassed fallback logic
+
+- **Found in:** Task 3 quality review
+- **Problem:** `_first_name` treated whitespace-only `shortname` values as valid and returned them instead of falling back to `name`.
+- **Resolution:** Trimmed candidate values before accepting them and added a test to verify whitespace-only `shortname` falls back to `name`.
+
+### Issue 15: Bogus falsy placeholders leaked into normalized names
+
+- **Found in:** Task 3 quality review
+- **Problem:** `_first_name` could stringify placeholder values like `0` or `False` into normalized output.
+- **Resolution:** Rejected boolean placeholders and numeric zero before stringification, while preserving fallback behavior to the next usable value.
+
+### Current implementation status
+
+- **Completed and committed:** Task 1 bootstrap, Task 2 ReliefWeb client/raw storage, and the current Task 3 normalization and quality work.
+- **Pushed branch state:** ready to push as the latest partial implementation snapshot on `copilot/reliefweb-pilot`.
+- **Still pending:** Task 4 pipeline and CLI wiring.
+- **Known remaining follow-up:** review feedback still suggests tightening `_first_meaningful_city` and `_safe_str` against bogus boolean / zero placeholder values, even though the current test suite passes.
+
