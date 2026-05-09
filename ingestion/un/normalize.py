@@ -73,7 +73,7 @@ def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dic
     return {
         "source": "reliefweb",
         "source_job_id": source_id,
-        "title": str(fields.get("title", "")),
+        "title": _safe_str(fields.get("title", "")),
         "organization": _first_name(fields.get("source")),
         # Use the first meaningful city entry (skip empty/null/whitespace values)
         "location": _first_meaningful_city(cities),
@@ -81,7 +81,7 @@ def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dic
         "remote_flag": "",
         "contract_type": _first_name(fields.get("career_categories")),
         "grade": "",
-        "posted_at": str(created),
+        "posted_at": _safe_str(created),
         "closes_at": _safe_str(fields.get("closing-date")),
         "url": _safe_str(fields.get("url")),
         "description_text": _safe_str(fields.get("body-html")),
