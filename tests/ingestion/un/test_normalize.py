@@ -81,6 +81,31 @@ def test_summarize_quality_treats_missing_ids_as_missing_not_duplicates():
     assert summary["missing_source_job_id"] == 2
 
 
+def test_summarize_quality_treats_none_ids_as_missing_not_duplicates():
+    rows = [
+        {"source_job_id": None, "url": "u1", "title": "X"},
+        {"source_job_id": "job-1", "url": "u2", "title": "A"},
+        {"source_job_id": "job-1", "url": "u3", "title": "A"},
+    ]
+
+    summary = summarize_quality(rows)
+
+    assert summary["duplicate_source_job_ids"] == 1
+    assert summary["missing_source_job_id"] == 1
+
+
+def test_summarize_quality_treats_none_urls_as_missing():
+    rows = [
+        {"source_job_id": "job-1", "url": None, "title": "X"},
+        {"source_job_id": "job-2", "url": "", "title": "Y"},
+        {"source_job_id": "job-3", "url": "   ", "title": "Z"},
+    ]
+
+    summary = summarize_quality(rows)
+
+    assert summary["missing_url"] == 3
+
+
 def test_malformed_date_non_dict_returns_empty_posted_at():
     raw_job = {
         "id": "job-10",
