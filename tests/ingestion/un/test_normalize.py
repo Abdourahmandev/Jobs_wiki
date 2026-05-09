@@ -23,6 +23,7 @@ def test_normalize_job_maps_reliefweb_fields_to_canonical_schema():
     assert row["source"] == "reliefweb"
     assert row["source_job_id"] == "job-1"
     assert row["title"] == "Data Scientist"
+    assert row["organization"] == "ReliefWeb"
     assert row["country"] == "Kenya"
     assert row["location"] == "Nairobi"
     assert row["url"] == "https://reliefweb.int/job/1"
