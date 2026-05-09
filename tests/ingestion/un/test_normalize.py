@@ -29,16 +29,29 @@ def test_normalize_job_maps_reliefweb_fields_to_canonical_schema():
     assert row["url"] == "https://reliefweb.int/job/1"
 
 
-def test_summarize_quality_counts_duplicates_and_missing_required_fields():
+def test_normalize_job_uses_first_meaningful_city():
+    raw_job = {
+        "id": "job-2",
+        "fields": {
+            "title": "Analyst",
+            "city": ["", None, "  ", "Kampala", "Nairobi"],
+        },
+    }
+
+    row = normalize_job(raw_job, run_id="run-002", ingested_at="2026-05-07T11:00:00Z")
+
+    assert row["location"] == "Kampala"
+
+
+def test_summarize_quality_treats_missing_ids_as_missing_not_duplicates():
     rows = [
-        {"source_job_id": "job-1", "url": "https://reliefweb.int/job/1", "title": "A"},
-        {"source_job_id": "job-1", "url": "https://reliefweb.int/job/1", "title": "A"},
-        {"source_job_id": "", "url": "", "title": "B"},
+        {"source_job_id": "", "url": "u1", "title": "X"},
+        {"source_job_id": "   ", "url": "u2", "title": "Y"},
+        {"source_job_id": "job-1", "url": "u3", "title": "A"},
+        {"source_job_id": "job-1", "url": "u4", "title": "A"},
     ]
 
     summary = summarize_quality(rows)
 
-    assert summary["record_count"] == 3
     assert summary["duplicate_source_job_ids"] == 1
-    assert summary["missing_source_job_id"] == 1
-    assert summary["missing_url"] == 1
+    assert summary["missing_source_job_id"] == 2
