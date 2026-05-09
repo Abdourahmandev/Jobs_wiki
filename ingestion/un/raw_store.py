@@ -11,9 +11,12 @@ def write_raw_payload(
     run_id: str,
     payload: dict[str, Any],
 ) -> Path:
-    # Reject run_id containing path separators or traversal fragments to prevent path traversal
+    # Reject run_id and run_date containing path separators or traversal fragments to prevent path traversal
     if not run_id or any(sep in run_id for sep in ("/", "\\", "..")):
         raise ValueError("unsafe run_id")
+
+    if not run_date or any(sep in run_date for sep in ("/", "\\", "..")):
+        raise ValueError("unsafe run_date")
 
     target_dir = base_dir / "raw" / "reliefweb" / run_date
     target_dir.mkdir(parents=True, exist_ok=True)

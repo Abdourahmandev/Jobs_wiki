@@ -25,6 +25,20 @@ def test_extract_jobs_handles_null_data():
     assert extract_jobs(response_json) == []
 
 
+def test_extract_jobs_rejects_non_list_data():
+    response_json = {"data": "not-a-list"}
+
+    assert extract_jobs(response_json) == []
+
+
+def test_write_raw_payload_rejects_unsafe_run_date(tmp_path):
+    with pytest.raises(ValueError):
+        write_raw_payload(base_dir=tmp_path, run_date="../2026-05-07", run_id="run-001", payload={})
+
+    with pytest.raises(ValueError):
+        write_raw_payload(base_dir=tmp_path, run_date="unsafe/date", run_id="run-001", payload={})
+
+
 def test_write_raw_payload_creates_dated_json_file(tmp_path):
     output_file = write_raw_payload(
         base_dir=tmp_path,

@@ -17,4 +17,7 @@ def extract_jobs(response_json: dict[str, Any]) -> list[dict[str, Any]]:
     data = response_json.get("data", None)
     if data is None:
         return []
-    return list(data)
+    # Only accept lists; protect against strings or other iterables being turned into lists
+    if not isinstance(data, list):
+        return []
+    return data
