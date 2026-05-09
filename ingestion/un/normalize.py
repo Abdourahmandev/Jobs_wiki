@@ -17,7 +17,20 @@ def _first_name(items: list[dict[str, Any]] | None) -> str:
     first = items[0]
     if not isinstance(first, dict):
         return ""
-    return str(first.get("shortname") or first.get("name") or "")
+    # Prefer 'shortname' but treat whitespace-only values as empty and fall back
+    # to 'name'. This mirrors _first_meaningful_city's behavior for trimming
+    # and skipping whitespace-only strings.
+    short = first.get("shortname")
+    if short is not None:
+        s = str(short).strip()
+        if s:
+            return s
+    name = first.get("name")
+    if name is not None:
+        s = str(name).strip()
+        if s:
+            return s
+    return ""
 
 
 def _first_meaningful_city(cities: list | None) -> str:

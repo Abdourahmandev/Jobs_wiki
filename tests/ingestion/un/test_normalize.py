@@ -170,3 +170,14 @@ def test_normalize_job_treats_none_fields_as_empty_strings():
     assert row["closes_at"] == ""
     assert row["url"] == ""
     assert row["description_text"] == ""
+
+
+def test_first_name_whitespace_shortname_falls_back_to_name():
+    raw_job = {
+        "id": "job-21",
+        "fields": {"source": [{"shortname": "   ", "name": "Valid Organization"}]},
+    }
+
+    row = normalize_job(raw_job, run_id="run-021", ingested_at="2026-05-07T17:00:00Z")
+
+    assert row["organization"] == "Valid Organization"
