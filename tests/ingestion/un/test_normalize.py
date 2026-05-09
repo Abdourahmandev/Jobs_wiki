@@ -79,3 +79,50 @@ def test_summarize_quality_treats_missing_ids_as_missing_not_duplicates():
 
     assert summary["duplicate_source_job_ids"] == 1
     assert summary["missing_source_job_id"] == 2
+
+
+def test_malformed_date_non_dict_returns_empty_posted_at():
+    raw_job = {
+        "id": "job-10",
+        "fields": {
+            "title": "Tester",
+            # date should be a dict but here is a string
+            "date": "2026-05-01T00:00:00+00:00",
+        },
+    }
+
+    row = normalize_job(raw_job, run_id="run-010", ingested_at="2026-05-07T14:00:00Z")
+
+    # Should not crash and should return empty posted_at for malformed date
+    assert row["posted_at"] == ""
+
+
+def test_first_name_handles_non_list_input_returns_empty():
+    raw_job = {
+        "id": "job-11",
+        "fields": {
+            # source/country/career_categories expected lists; supply dicts/strings
+            "source": {"shortname": "ReliefWeb"},
+            "country": "Kenya",
+            "career_categories": {"name": "Information Management"},
+        },
+    }
+
+    row = normalize_job(raw_job, run_id="run-011", ingested_at="2026-05-07T15:00:00Z")
+
+    # Malformed shapes should yield empty strings, not crash or produce dict/stringified values
+    assert row["organization"] == ""
+    assert row["country"] == ""
+    assert row["contract_type"] == ""
+
+
+def test_first_meaningful_city_handles_non_list_input_returns_empty():
+    # city as a bare string
+    raw_job1 = {"id": "job-12", "fields": {"city": "Nairobi"}}
+    row1 = normalize_job(raw_job1, run_id="run-012", ingested_at="2026-05-07T16:00:00Z")
+    assert row1["location"] == ""
+
+    # city as a dict (not in a list)
+    raw_job2 = {"id": "job-13", "fields": {"city": {"name": "Lagos"}}}
+    row2 = normalize_job(raw_job2, run_id="run-013", ingested_at="2026-05-07T16:00:00Z")
+    assert row2["location"] == ""

@@ -8,10 +8,15 @@ def _first_name(items: list[dict[str, Any]] | None) -> str:
 
     Prefer 'shortname' (used by ReliefWeb), falling back to 'name' to preserve
     existing behavior for other sources (countries, categories, etc.).
+
+    Be tolerant of malformed shapes: if `items` is not a list, treat it as
+    missing and return an empty string rather than raising an exception.
     """
-    if not items:
+    if not isinstance(items, list) or not items:
         return ""
     first = items[0]
+    if not isinstance(first, dict):
+        return ""
     return str(first.get("shortname") or first.get("name") or "")
 
 
@@ -21,8 +26,11 @@ def _first_meaningful_city(cities: list | None) -> str:
     Skip None, empty strings, whitespace-only entries, and dicts without a
     usable 'name' or 'shortname'. If a dict is encountered prefer extracting
     the 'name' (fall back to 'shortname') and return it if non-empty.
+
+    Be tolerant of malformed shapes: only accept lists. If `cities` is not a
+    list, return an empty string rather than iterating strings or dicts.
     """
-    if not cities:
+    if not isinstance(cities, list) or not cities:
         return ""
     for c in cities:
         if c is None:
@@ -43,7 +51,11 @@ def _first_meaningful_city(cities: list | None) -> str:
 def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dict[str, str]:
     fields = raw_job.get("fields", {})
     cities = fields.get("city", [])
-    created = fields.get("date", {}).get("created", "")
+    date_field = fields.get("date")
+    if isinstance(date_field, dict):
+        created = date_field.get("created", "")
+    else:
+        created = ""
 
     # Treat None source IDs as missing (empty string), not the literal 'None'
     raw_id = raw_job.get("id", "")
