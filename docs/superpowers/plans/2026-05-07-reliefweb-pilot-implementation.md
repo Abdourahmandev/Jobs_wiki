@@ -550,3 +550,35 @@ git commit -m "feat: wire local reliefweb pipeline entry point"
 - Placeholder scan: no `TODO`, `TBD`, or "similar to previous task" shortcuts remain.
 - Type consistency: `run_id`, `run_date`, `ingested_at`, `source_job_id`, and `fetch_payload` use the same names across all tasks.
 
+## Implementation findings
+
+### Issue 1: Exported module was not actually importable
+
+- **Found in:** Task 1 quality review
+- **Problem:** `ingestion/un/__init__.py` exported `reliefweb_client`, but the module did not exist yet, so the bootstrap test could pass while real imports still failed.
+- **Resolution:** Added a minimal placeholder `ingestion/un/reliefweb_client.py` and strengthened the bootstrap test to import the module instead of only checking the `__all__` string list.
+
+### Issue 2: Raw payload writer allowed path traversal through `run_id`
+
+- **Found in:** Task 2 quality review
+- **Problem:** `write_raw_payload` used `run_id` directly in the output filename path, which could allow writes outside the intended directory if unsafe values were passed.
+- **Resolution:** Added defensive validation to reject unsafe `run_id` values containing path separators or traversal fragments, and added focused tests for the rejection behavior.
+
+### Issue 3: Raw payload writer also allowed path traversal through `run_date`
+
+- **Found in:** Task 2 follow-up quality review
+- **Problem:** The first fix secured `run_id` but left `run_date` unchecked, which still allowed directory escape patterns.
+- **Resolution:** Applied the same validation rule to `run_date` and added a focused regression test covering unsafe values.
+
+### Issue 4: `extract_jobs` mishandled malformed API payloads
+
+- **Found in:** Task 2 quality review and follow-up review
+- **Problem:** `extract_jobs` originally failed on `{\"data\": null}` and could silently corrupt data by iterating non-list values such as strings.
+- **Resolution:** Tightened the extractor so it returns an empty list unless `data` is a list, and added regression tests for `null` and non-list payloads.
+
+### Issue 5: Python cache artifacts were accidentally committed
+
+- **Found in:** Controller inspection after Task 2 fix commit
+- **Problem:** A follow-up commit unintentionally included tracked `__pycache__` and `.pyc` files, which should not be versioned.
+- **Resolution:** Removed the tracked cache artifacts, updated `.gitignore` to exclude Python cache files, and verified the worktree returned to a clean git state.
+
