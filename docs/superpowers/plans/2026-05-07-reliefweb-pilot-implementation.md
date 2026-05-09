@@ -642,10 +642,28 @@ git commit -m "feat: wire local reliefweb pipeline entry point"
 - **Problem:** `_first_name` could stringify placeholder values like `0` or `False` into normalized output.
 - **Resolution:** Rejected boolean placeholders and numeric zero before stringification, while preserving fallback behavior to the next usable value.
 
+### Issue 16: ReliefWeb API v1 has been decommissioned
+
+- **Found in:** Task 4 live end-to-end run
+- **Problem:** `RELIEFWEB_JOBS_URL` pointed to `https://api.reliefweb.int/v1/jobs`. The live run returned `410 Gone` with the message "The API version 'v1' has been decommissioned. Please use version 'v2' instead."
+- **Resolution:** Updated `RELIEFWEB_JOBS_URL` to `https://api.reliefweb.int/v2/jobs` in `ingestion/un/reliefweb_client.py`.
+
+### Issue 17: ReliefWeb API v2 requires `appname` as a URL query parameter, not in the JSON body
+
+- **Found in:** Task 4 live end-to-end run after v2 migration
+- **Problem:** The v1 client included `appname` in the JSON body. v2 returns `400 Bad Request: Missing appname parameter` when `appname` is in the body, and requires it as a URL query parameter instead. Additionally, v2 enforces an approved appname allowlist — `jobs_wiki` is not yet registered, so the live run ends with `403 Forbidden`. Registration is required at <https://apidoc.reliefweb.int/parameters#appname>.
+- **Resolution:** Removed `appname` from `build_jobs_request()` body. Introduced a `RELIEFWEB_APP_NAME` constant. Updated the CLI script to pass `params={"appname": RELIEFWEB_APP_NAME}` in the `requests.post()` call. Added a note in `README.md` that an approved appname must be registered before the live run will succeed.
+
+### Issue 18: Existing test asserted `appname` in the request body, breaking after v2 migration
+
+- **Found in:** Task 4 test suite run after fixing Issues 16 and 17
+- **Problem:** `test_build_jobs_request_targets_reliefweb_jobs` asserted `payload["appname"] == "jobs_wiki"`. After moving `appname` to a query parameter constant, this raised `KeyError: 'appname'`.
+- **Resolution:** Updated the test to assert `"appname" not in payload` and added two new assertions — `test_reliefweb_url_uses_v2` and `test_reliefweb_app_name_is_set` — to cover the v2 URL and the constant value explicitly.
+
 ### Current implementation status
 
-- **Completed and committed:** Task 1 bootstrap, Task 2 ReliefWeb client/raw storage, and the current Task 3 normalization and quality work.
-- **Pushed branch state:** ready to push as the latest partial implementation snapshot on `copilot/reliefweb-pilot`.
-- **Still pending:** Task 4 pipeline and CLI wiring.
-- **Known remaining follow-up:** review feedback still suggests tightening `_first_meaningful_city` and `_safe_str` against bogus boolean / zero placeholder values, even though the current test suite passes.
+- **Completed and committed:** All four tasks — bootstrap, ReliefWeb client/raw storage, normalization and quality, and pipeline/CLI wiring — are implemented, tested, and committed on branch `feat/task-4-pipeline-wiring`.
+- **Test suite:** 28 tests passing, 0 failures.
+- **Live run status:** Code is structurally correct for v2. End-to-end execution against the real API is blocked until `jobs_wiki` is registered as an approved appname at <https://apidoc.reliefweb.int/parameters#appname>.
+- **No known remaining follow-up.**
 
