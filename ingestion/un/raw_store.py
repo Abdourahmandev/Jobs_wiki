@@ -11,6 +11,10 @@ def write_raw_payload(
     run_id: str,
     payload: dict[str, Any],
 ) -> Path:
+    # Reject run_id containing path separators or traversal fragments to prevent path traversal
+    if not run_id or any(sep in run_id for sep in ("/", "\\", "..")):
+        raise ValueError("unsafe run_id")
+
     target_dir = base_dir / "raw" / "reliefweb" / run_date
     target_dir.mkdir(parents=True, exist_ok=True)
     output_file = target_dir / f"{run_id}.json"

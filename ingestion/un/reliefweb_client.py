@@ -14,4 +14,7 @@ def build_jobs_request(limit: int = 100) -> dict[str, Any]:
 
 
 def extract_jobs(response_json: dict[str, Any]) -> list[dict[str, Any]]:
-    return list(response_json.get("data", []))
+    data = response_json.get("data", None)
+    if data is None:
+        return []
+    return list(data)
