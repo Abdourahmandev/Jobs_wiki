@@ -23,13 +23,11 @@ une seule source reelle avant d'etendre le scope.
 
 ## Priorite immediate
 
-Le prochain milestone est un **pipeline pilote ReliefWeb** qui doit:
+Le pipeline pilote ReliefWeb est **entierement implemente et teste** (28 tests, 0 echecs).
 
-1. recuperer des offres reelles depuis ReliefWeb
-2. stocker les donnees brutes localement avec une partition datee
-3. produire un dataset silver avec un schema canonique
-4. executer des controles qualite minimaux
-5. generer un resume d'execution reproductible
+La seule action bloquante avant la premiere execution reelle est l'approbation
+de l'appname `jobs_wiki` aupres de ReliefWeb (demande envoyee le 2026-05-09,
+delai de reponse 24h).
 
 ## Hors scope pour l'instant
 
@@ -77,22 +75,32 @@ Le prochain milestone est un **pipeline pilote ReliefWeb** qui doit:
 └── scripts/
 ```
 
-## Etat actuel
+## Etat actuel (2026-05-09)
 
-Ce qui est deja fait:
+### Fait — M1R pipeline pilote ReliefWeb (branch `feat/task-4-pipeline-wiring`)
 
-- structure monorepo initiale creee
-- roadmap locale recentree dans `Plan.md`
-- architecture cible documentee dans `docs/architecture.md`
-- design du pilote ReliefWeb documente dans
-  `docs/superpowers/specs/2026-05-07-reliefweb-pilot-design.md`
+- [x] Structure monorepo et package Python (`pyproject.toml`, `ingestion/un/`)
+- [x] Client ReliefWeb API v2 (`reliefweb_client.py`) — requete, extraction, stockage brut date
+- [x] Normalisation silver (`normalize.py`) — schema canonique 16 champs, robustesse aux champs malformes
+- [x] Controles qualite (`quality.py`) — doublons, champs manquants, volume
+- [x] Orchestration complete (`pipeline.py`) — fetch -> raw JSON -> silver CSV -> resume JSON
+- [x] Point d'entree CLI (`scripts/run_reliefweb_pipeline.py`)
+- [x] Suite de tests : **28 tests, 0 echecs**
+- [x] README mis a jour avec les instructions d'execution
 
-Ce qui vient ensuite:
+### Bloquant — en attente
 
-- definir le contrat d'ingestion ReliefWeb
-- implementer le pipeline local raw -> silver
-- ajouter les controles qualite minimaux
-- valider une execution reproductible sur donnees reelles
+- [ ] Approbation de l'appname `jobs_wiki` par ReliefWeb (demande envoyee le 2026-05-09)
+  — une fois approuve, mettre a jour `RELIEFWEB_APP_NAME` dans `ingestion/un/reliefweb_client.py`
+  et lancer `python scripts/run_reliefweb_pipeline.py` pour valider l'execution reelle
+
+### A venir — M2R et au-dela
+
+- Renforcement des controles qualite silver
+- Generation des features gold pour le modele baseline
+- Training et evaluation locale (M3R)
+- Replication World Bank et BAD (M4R)
+- Migration cloud (M5R)
 
 ## Execution locale du pipeline pilote
 
