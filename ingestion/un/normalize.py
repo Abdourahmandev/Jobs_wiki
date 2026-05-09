@@ -58,7 +58,7 @@ def _safe_str(value: Any) -> str:
 
 
 def normalize_job(raw_job: dict[str, Any], run_id: str, ingested_at: str) -> dict[str, str]:
-    fields = raw_job.get("fields", {})
+    fields = raw_job.get("fields") or {}
     cities = fields.get("city", [])
     date_field = fields.get("date")
     if isinstance(date_field, dict):
